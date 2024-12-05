@@ -1,0 +1,43 @@
+#!/bin/sh
+
+BASEDIR="$HOME/rep/typings"
+DIARYDIR="$BASEDIR/diary"
+NOTESDIR="$BASEDIR/notes"
+
+while getopts "d:n:h" c
+do
+	case $c in
+		d)
+			if [ ! -d $BASEDIR ]; then
+				printf "nn: given base directory '$BASEDIR' not found.\n"
+				exit 1
+			elif [ ! -d $DIARYDIR ]; then
+				printf "nn: given diary directory '$DIARYDIR' not found.\n"
+				exit 1
+			fi
+
+			if [ $OPTARG = "now" ]; then
+				$EDITOR $DIARYDIR/$(date +%F).md
+			elif [ $OPTARG = "next" ]; then
+				$EDITOR $DIARYDIR/$(date -d "+1 day" +%F).md
+			elif [ $OPTARG = "prev" ]; then
+				$EDITOR $DIARYDIR/$(date -d "-1 day" +%F).md
+			fi
+			;;
+		n)
+			if [ ! -d $BASEDIR ]; then
+				printf "nn: given base directory '$BASEDIR' not found.\n"
+				exit 1
+			elif [ ! -d $NOTESDIR ]; then
+				printf "nn: given notes directory '$NOTESDIR' not found.\n"
+				exit 1
+			fi
+
+			note=$OPTARG-$(date +%Y%m%d-%H%M%S)
+			$EDITOR $NOTESDIR/$note.md
+			;;
+		h)
+			printf "usage: nn [-n] [-d]\nnn creates new diary or common note.\n\t-d\tcreate diary note\t[now/next/prev]\n\t-n\tcreate common note like '2024-12-05-134944.md'\n"
+			;;
+	esac
+done
