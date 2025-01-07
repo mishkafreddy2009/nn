@@ -3,6 +3,11 @@
 BASEDIR="$HOME/src/typings"
 NOTESDIR="$BASEDIR/notes"
 
+if [ $# -lt 1 ]; then
+	printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
+	exit 1
+fi
+
 while getopts "d:h" c
 do
 	case $c in
@@ -44,7 +49,20 @@ do
 			fi
 			;;
 		h)
-			printf "usage: nn [-n] [-d]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
+			printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
+			;;
+		\?)
+			printf "nn: invalid option\n"
+			printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday, or tomorrow note\t[now/next/prev]\n"
+			exit 1
 			;;
 	esac
 done
+
+shift $((OPTIND - 1))
+
+if [ $# -gt 0 ]; then
+	printf "nn: invalid option\n"
+	printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday, or tomorrow note\t[now/next/prev]\n"
+	exit 1
+fi
