@@ -1,43 +1,50 @@
 #!/bin/sh
 
-BASEDIR="$HOME/rep/typings"
-DIARYDIR="$BASEDIR/diary"
+BASEDIR="$HOME/src/typings"
 NOTESDIR="$BASEDIR/notes"
 
-while getopts "d:n:h" c
+while getopts "d:h" c
 do
 	case $c in
 		d)
 			if [ ! -d $BASEDIR ]; then
 				printf "nn: given base directory '$BASEDIR' not found.\n"
 				exit 1
-			elif [ ! -d $DIARYDIR ]; then
+			elif [ ! -d $NOTESDIR ]; then
 				printf "nn: given diary directory '$DIARYDIR' not found.\n"
 				exit 1
 			fi
-
 			if [ $OPTARG = "now" ]; then
-				$EDITOR $DIARYDIR/$(date +%F).md
+				date=$(date +%F)
+				file=$NOTESDIR/$date.md
+				if [ ! -f $file ]; then
+					touch $file
+					header_date=$(date '+%d %^b %Y')
+					echo '# '$header_date'' > $file
+				fi
+				$EDITOR $file
 			elif [ $OPTARG = "next" ]; then
-				$EDITOR $DIARYDIR/$(date -d "+1 day" +%F).md
+				date=$(date +%F -d "+1 day")
+				file=$NOTESDIR/$date.md
+				if [ ! -f $file ]; then
+					touch $file
+					header_date=$(date -d $date '+%d %^b %Y')
+					echo '# '$header_date'' > $file
+				fi
+				$EDITOR $file
 			elif [ $OPTARG = "prev" ]; then
-				$EDITOR $DIARYDIR/$(date -d "-1 day" +%F).md
+				date=$(date +%F -d "-1 day")
+				file=$NOTESDIR/$date.md
+				if [ ! -f $file ]; then
+					touch $file
+					header_date=$(date -d $date '+%d %^b %Y')
+					echo '# '$header_date'' > $file
+				fi
+				$EDITOR $file
 			fi
-			;;
-		n)
-			if [ ! -d $BASEDIR ]; then
-				printf "nn: given base directory '$BASEDIR' not found.\n"
-				exit 1
-			elif [ ! -d $NOTESDIR ]; then
-				printf "nn: given notes directory '$NOTESDIR' not found.\n"
-				exit 1
-			fi
-
-			note=$OPTARG-$(date +%Y%m%d-%H%M%S)
-			$EDITOR $NOTESDIR/$note.md
 			;;
 		h)
-			printf "usage: nn [-n] [-d]\nnn creates new diary or common note.\n\t-d\tcreate diary note\t[now/next/prev]\n\t-n\tcreate common note like '2024-12-05-134944.md'\n"
+			printf "usage: nn [-n] [-d]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
 			;;
 	esac
 done
