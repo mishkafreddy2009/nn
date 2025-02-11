@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BASEDIR="$HOME/src/typings"
+BASEDIR="$HOME/doc/typings"
 NOTESDIR="$BASEDIR/notes"
 
 if [ $# -lt 1 ]; then
@@ -19,33 +19,29 @@ do
 				printf "nn: given diary directory '$DIARYDIR' not found.\n"
 				exit 1
 			fi
+
+			date=""
+			file=""
 			if [ $OPTARG = "now" ]; then
 				date=$(date +%F)
 				file=$NOTESDIR/$date.md
-				if [ ! -f $file ]; then
-					touch $file
-					header_date=$(date '+%d %^b %Y')
-					echo '# '$header_date'' > $file
-				fi
-				$EDITOR $file
 			elif [ $OPTARG = "next" ]; then
 				date=$(date +%F -d "+1 day")
 				file=$NOTESDIR/$date.md
-				if [ ! -f $file ]; then
-					touch $file
-					header_date=$(date -d $date '+%d %^b %Y')
-					echo '# '$header_date'' > $file
-				fi
-				$EDITOR $file
 			elif [ $OPTARG = "prev" ]; then
 				date=$(date +%F -d "-1 day")
 				file=$NOTESDIR/$date.md
-				if [ ! -f $file ]; then
-					touch $file
-					header_date=$(date -d $date '+%d %^b %Y')
-					echo '# '$header_date'' > $file
-				fi
-				$EDITOR $file
+			fi
+
+			if [ ! -f $file ]; then
+				touch $file
+				header_date=$(date -d $date '+%d %^b %Y')
+				echo '# '$header_date'' > $file
+			fi
+			$EDITOR $file
+
+			if [ $(wc -c < $file) -le 14 ]; then
+				rm -f $file
 			fi
 			;;
 		h)
