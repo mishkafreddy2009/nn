@@ -1,22 +1,23 @@
 #!/bin/sh
 
-BASEDIR="$HOME/doc/typings"
+BASEDIR="$HOME/src/personal/typings"
+DIARYDIR="$BASEDIR/diary"
 NOTESDIR="$BASEDIR/notes"
 
 if [ $# -lt 1 ]; then
-	printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
+	printf "usage: nn [-d][-n][-h]\n\t-d\tcreate or open diary note\t[now/next/prev]\n\t-n\tcreate new note\n"
 	exit 1
 fi
 
-while getopts "d:h" c
+while getopts "d:hn" c
 do
 	case $c in
 		d)
 			if [ ! -d $BASEDIR ]; then
-				printf "nn: given base directory '$BASEDIR' not found.\n"
+				printf "nn: base directory '$BASEDIR' not found.\n"
 				exit 1
-			elif [ ! -d $NOTESDIR ]; then
-				printf "nn: given diary directory '$DIARYDIR' not found.\n"
+			elif [ ! -d $DIARYDIR ]; then
+				printf "nn: diary directory '$DIARYDIR' not found.\n"
 				exit 1
 			fi
 
@@ -24,32 +25,58 @@ do
 			file=""
 			if [ $OPTARG = "now" ]; then
 				date=$(date +%F)
-				file=$NOTESDIR/$date.md
+				file=$DIARYDIR/$date.md
 			elif [ $OPTARG = "next" ]; then
 				date=$(date +%F -d "+1 day")
-				file=$NOTESDIR/$date.md
+				file=$DIARYDIR/$date.md
 			elif [ $OPTARG = "prev" ]; then
 				date=$(date +%F -d "-1 day")
-				file=$NOTESDIR/$date.md
+				file=$DIARYDIR/$date.md
 			fi
 
 			if [ ! -f $file ]; then
 				touch $file
 				header_date=$(date -d $date '+%d %^b %Y')
-				echo '# '$header_date'' > $file
+				printf "# $header_date" > $file
 			fi
 			$EDITOR $file
 
 			if [ $(wc -c < $file) -le 14 ]; then
+				printf "nn: saved file '$file' is empty and will be deleted.\n"
 				rm -f $file
 			fi
 			;;
+		n)
+			if [ ! -d $BASEDIR ]; then
+				printf "nn: base directory '$BASEDIR' not found.\n"
+				exit 1
+			elif [ ! -d $NOTESDIR ]; then
+				printf "nn: diary directory '$DIARYDIR' not found.\n"
+				exit 1
+			fi
+
+			file=/tmp/nn$(date "+%Y%m%d%H%M%S").md
+			$EDITOR $file
+
+			if [ ! -f $file ]; then
+				exit 0
+			fi
+
+			if [ $(head -n1 $file | rg  '.' | wc -l) -eq 0 ]; then
+				printf "nn: saved file '$file' is empty and will be deleted.\n"
+				rm -f $file
+				exit 0
+			else
+				newfile=$NOTESDIR/$(head -n1 $file | sed 's/^# //' | tr ' ' '_' | tr [:upper:] [:lower:]).md
+				mv $file $newfile
+			fi
+			;;
 		h)
-			printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday or tommorow note\t[now/next/prev]\n"
+			printf "usage: nn [-d][-n][-h]\n\t-d\tcreate or open diary note\t[now/next/prev]\n\t-n\tcreate new note\n"
 			;;
 		\?)
 			printf "nn: invalid option\n"
-			printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday, or tomorrow note\t[now/next/prev]\n"
+			printf "usage: nn [-d][-n][-h]\n\t-d\tcreate or open diary note\t[now/next/prev]\n\t-n\tcreate new note\n"
 			exit 1
 			;;
 	esac
@@ -59,6 +86,6 @@ shift $((OPTIND - 1))
 
 if [ $# -gt 0 ]; then
 	printf "nn: invalid option\n"
-	printf "usage: nn [-d][-h]\n\t-d\tcreate or open today, yesterday, or tomorrow note\t[now/next/prev]\n"
+			printf "usage: nn [-d][-n][-h]\n\t-d\tcreate or open diary note\t[now/next/prev]\n\t-n\tcreate new note\n"
 	exit 1
 fi
